@@ -7,6 +7,14 @@ cell = None
 """Cell: default geometry to use globally throughout the code when no other
 geometry is explicitly specified.
 """
+def get_cell(cell_=None):
+    """Returns the cell to use for calculations.
+    """
+    if cell_ is not None:
+        return cell_
+    else:
+        return cell
+
 def set_cell(cell_):
     """Sets the global cell to an already initialized instance.
 
@@ -18,7 +26,7 @@ def set_cell(cell_):
     global cell
     cell = cell_
 
-def set_geometry(R, S, grid="MP"):
+def set_geometry(R, S, X=None, Z=1, grid="MP"):
     """Sets the global geometry that is used by default in all calculations.
 
     Args:
@@ -27,13 +35,17 @@ def set_geometry(R, S, grid="MP"):
         S (numpy.ndarray): of `int`; defines how many times to divide
           each of the lattice vectors when defining the descritizing
           grid.
+        X (numpy.ndarray): of shape (N, 3), where `N` is the number of
+          nucleii in the unit cell.
+        Z (numpy.ndarray or int): specifying the size of charge on
+          each nucleus in `X`.
         grid (str): one of ['MP', 'BCC']; defines the type of grid to use
             for sampling *real* space unit cell.
     """
     from pydft.bases.fourier import reset_cache
     reset_cache()
     global cell
-    cell = Cell(R, S, grid)
+    cell = Cell(R, S, X, Z, grid)
     return cell
 
 class Cell(object):
@@ -46,6 +58,10 @@ class Cell(object):
         S (numpy.ndarray): of `int`; defines how many times to divide
           each of the lattice vectors when defining the descritizing
           grid.
+        X (numpy.ndarray): of shape (N, 3), where `N` is the number of
+          nucleii in the unit cell.
+        Z (numpy.ndarray or int): specifying the size of charge on
+          each nucleus in `X`.
         grid (str): one of ['MP', 'BCC']; defines the type of grid to use
             for sampling *real* space unit cell.
 
@@ -55,13 +71,22 @@ class Cell(object):
         S (numpy.ndarray): of `int`; defines how many times to divide
           each of the lattice vectors when defining the descritizing
           grid.
+        X (numpy.ndarray): of shape (N, 3), where `N` is the number of
+          nucleii in the unit cell.
+        Z (numpy.ndarray or int): specifying the size of charge on
+          each nucleus in `X`.
         vol (float): volume of the cell in real space.
     """
-    def __init__(self, R, S, grid="MP"):
-        self.R = R
+    def __init__(self, R, S, X=None, Z=1, grid="MP"):
+        self.R = np.array(R)
         self.S = np.array(S)
         self.vol = np.linalg.det(self.R)
-        
+        if X is None:
+            self.X = np.array([[0,0,0]])
+        else:
+            self.X = np.array(X)
+        self.Z = np.array([Z for i in range(len(self.X))])
+            
         self._M = None
         """numpy.ndarray: matrix of fractions used to define the points on which
         the functions are sampled in the unit cell.
@@ -84,6 +109,10 @@ class Cell(object):
         """numpy.ndarray: with shape (3, 3); holds the reciprocal lattice
         vectors for the problem.
         """
+        self._Sf = None
+        """numpy.ndarray: with length `self.X.shape[0]`; structure factors for
+        the nucleii in the cell.
+        """
         
         if grid != "MP":
             raise NotImplementedError("Haven't got BCC sampling in place yet.")
@@ -98,7 +127,15 @@ class Cell(object):
             b3 = 2*np.pi*np.cross(self.R[:,0], self.R[:,1])/self.vol
             self._K = np.vstack((b1, b2, b3)).T
         return self._K
-        
+
+    @property
+    def Sf(self):
+        """Structure factor for the nuclei in the cell.
+        """
+        if self._Sf is None:
+            self._Sf = np.sum(np.exp(-1j*np.dot(self.G, self.X.T)), axis=1)
+        return self._Sf
+    
     @property
     def r(self):
 
