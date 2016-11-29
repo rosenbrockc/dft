@@ -1,5 +1,9 @@
 # Revision History
 
+## Revision 0.0.3
+
+- Added `scipy` as requirement.
+
 ## Revision 0.0.2
 
 - Working Ewald solver that produces good values. However, it is quite sensitive to choice of `R`.

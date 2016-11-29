@@ -2,4 +2,5 @@ argparse
 termcolor
 pytest
 numpy
+scipy
 matplotlib
