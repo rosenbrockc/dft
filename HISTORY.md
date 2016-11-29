@@ -4,6 +4,7 @@
 
 - Working Ewald solver that produces good values. However, it is quite sensitive to choice of `R`.
 - Unit tests for Arias quick and dirty solver; it doesn't reproduce the values he suggests in the assigment.
+- Trigger CI and coverage automation.
 
 ## Revision 0.0.1
 
