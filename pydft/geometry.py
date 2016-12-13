@@ -113,10 +113,24 @@ class Cell(object):
         """numpy.ndarray: with length `self.X.shape[0]`; structure factors for
         the nucleii in the cell.
         """
+        self._dr = None
+        """numpy.ndarray: distance from the center of the cell to each
+        of the sample points.
+        """
         
         if grid != "MP":
             raise NotImplementedError("Haven't got BCC sampling in place yet.")
 
+    @property
+    def dr(self):
+        """Returns a matrix of the distance from the center of the
+        cell to each of the sample points.
+        """
+        if self._dr is None:
+            center = np.sum(self.R, axis=1)/2.
+            self._dr = self.r - center
+        return self._dr
+        
     @property
     def K(self):
         """Reciprocal lattice vectors for the problem. Has shape (3, 3).

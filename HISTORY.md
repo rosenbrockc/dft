@@ -1,5 +1,9 @@
 # Revision History
 
+## Revision 0.0.4
+
+- Completed up to section 3.3, `diagouter` function. All unit-tested and passing.
+
 ## Revision 0.0.3
 
 - Added `scipy` as requirement.

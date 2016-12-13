@@ -46,3 +46,39 @@ def test_O(adjcube):
         v = np.random.random(size=10)
         out = O(v)
         assert np.allclose(out/np.linalg.det(adjcube.R), v)
+
+def test_IJdag(adjcube):
+    """Tests the operator definitions for :math:`I^\dag` and
+    :math:`J^\dag`.
+    """
+    #We are interested in testing the identities for Idag and Jdag
+    from pydft.bases.fourier import Idag, Jdag, I, J
+    from numpy.matlib import randn
+    cell = adjcube
+    
+    # Single columns of random complex data
+    a = np.array(randn(np.prod(cell.S), 1) + 1j*randn(np.prod(cell.S), 1))
+    b = np.array(randn(np.prod(cell.S), 1) + 1j*randn(np.prod(cell.S), 1))
+
+    LHS = np.dot(a.T.conjugate(), I(b)).conjugate()
+    RHS = np.dot(b.T.conjugate(), Idag(a))
+    assert np.allclose(LHS, RHS)
+
+    LHS = np.dot(a.T.conjugate(), J(b)).conjugate()
+    RHS = np.dot(b.T.conjugate(), Jdag(a))
+    assert np.allclose(LHS, RHS)
+
+def test_IJdag_M(adjcube):
+    """Tests operator definitions on matrix-valued inputs.
+    """
+    #We are interested in testing the identities for Idag and Jdag
+    from pydft.bases.fourier import I
+    from numpy.matlib import randn
+    cell = adjcube
+    
+    # Single columns of random complex data
+    a = np.array(randn(np.prod(cell.S), 3) + 1j*randn(np.prod(cell.S), 3))
+
+    out1 = I(a)
+    out2 = np.array([I(a[:,0]), I(a[:,1]), I(a[:,2])]).T
+    assert np.allclose(out1, out2)

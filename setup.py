@@ -18,7 +18,7 @@ except ImportError:
 
 from os import path
 setup(name='pydft',
-      version='0.0.3',
+      version='0.0.4',
       description='Density function theory code.',
       long_description= "" if not path.isfile("README.md") else read_md('README.md'),
       author='Conrad W Rosenbrock',
