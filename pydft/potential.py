@@ -33,6 +33,7 @@ class Potential(object):
         """
         if self._V is None:
             self._V = self.pot(self.cell.dr)
+        return self._V
 
     def Vdual(self, basis="fourier"):
         """Returns the dual of the potential points evaluated on
@@ -50,3 +51,4 @@ class Potential(object):
             J = B.J
 
             self._Vdual = Jdag(O(J(self.V)))       
+        return self._Vdual

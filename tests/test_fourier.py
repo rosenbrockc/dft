@@ -8,6 +8,22 @@ def adjcube():
     c = set_geometry(np.diag([6., 6., 6.]), np.array([6, 6, 4]))
     return c
 
+def test_E_real(adjcube):
+    """Tests that the result of the calculation is real.
+    """
+    from pydft.bases.fourier import E
+    from numpy.matlib import randn
+    cell = adjcube
+    
+    #Single columns of random complex data
+    W = np.array(randn(np.prod(cell.S), 4) + 1j*randn(np.prod(cell.S), 4))
+    #Setup a harmonic oscillator potential
+    from pydft.potential import Potential
+    V = Potential(cell, lambda dr: 2*np.linalg.norm(dr, axis=1)**2)
+    En = E(V, W, cell, forceR=False)
+    
+    assert np.imag(En) < 1e-14
+
 def test_IJ(adjcube):
     """Tests the I and J operators."""
     from pydft.bases.fourier import I, J

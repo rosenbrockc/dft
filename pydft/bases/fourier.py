@@ -48,6 +48,54 @@ def get_cache(op, cell):
     if op in cache and cache[op] is not None:
         if cell is None or cell is gcell:
             return cache[op]
+
+def n(W, cell=None):
+    """Calculate the density vector.
+
+    Args:
+        W (numpy.ndarray): wave function sample points.
+        cell (pydft.geometry.Cell): describing the unit cell and sampling
+          points.
+
+    Returns:
+        tuple: `(n, W Uinv)` so that the `W Uinv` can be re-used by later
+        calculations.
+    """
+    from pydft.solvers.la import diagouter
+    Uinv = np.linalg.inv(U(W, cell))
+    WUinv = np.dot(W, Uinv)
+    A = I(WUinv, cell)
+    B = I(W, cell)
+    return (diagouter(A, B), WUinv)
+        
+def E(V, W, cell=None, forceR=True):
+    """Calculates the energy for the specified wave functions and potential.
+
+    Args:
+        V (pydft.potential.Potential): describing the potential for the
+          particles.
+        W (numpy.ndarray): wave function sample points.
+        cell (pydft.geometry.Cell): describing the unit cell and sampling
+          points.
+        forceR (bool): forces the result to be real.
+    """
+    n_, WUinv = n(W, cell)
+    A = -1./2*np.trace(np.dot(W.conjugate().T, L(WUinv)))
+    B = np.dot(V.Vdual(), n_)
+
+    if forceR:
+        return np.real(A + B)
+    else:
+        return A + B
+        
+def U(W, cell=None):
+    """Calculates operator `U` for the given wave functions.
+
+    Args:
+        W (numpy.ndarray): wave function sample points.
+        cell (pydft.geometry.Cell): describing the unit cell and sampling points.
+    """
+    return np.dot(W.conjugate().T, O(W, cell))
         
 def L(v=None, cell=None):
     """Returns the Laplacian operator matrix for the plane wave basis.

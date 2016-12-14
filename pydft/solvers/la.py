@@ -24,7 +24,7 @@ def matprod(M, v):
             result = M(v)      
     else:
         if len(v.shape) == 2 and v.shape[1] != 1:
-            result = np.zeros(v.shape)
+            result = np.zeros(v.shape, dtype=v.dtype)
             for i in range(v.shape[1]):
                 result[:,i] = np.dot(M, v[:,i])
         else:
