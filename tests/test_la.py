@@ -3,6 +3,18 @@
 import pytest
 import numpy as np
 
+def test_diagprod():
+    """Tests diagonal product.
+    """
+    from pydft.solvers.la import diagprod
+    a = np.random.random(10)
+    B = np.random.random((10,3))
+
+    model = np.dot(np.diag(a), B)    
+    ours = diagprod(a, B)
+    
+    assert np.allclose(model, ours)
+
 def test_diagouter():
     """Tests diagonal of outer product.
     """

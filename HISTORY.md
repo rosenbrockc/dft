@@ -1,5 +1,11 @@
 # Revision History
 
+## Revision 0.0.6
+
+- Complete wave function solution.
+- Added steepest descent algorithm.
+- All unit tested (with at least one test using random vectors and matrices).
+
 ## Revision 0.0.5
 
 - Added energy solver for arbitrary wave functions.

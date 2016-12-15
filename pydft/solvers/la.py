@@ -42,3 +42,18 @@ def diagouter(A, B):
     """
     #We are after c_i = \sum_n A_{i,n}B^*_{i,n}.
     return np.sum(A*B.conjugate(), axis=1)
+
+def diagprod(a, B):
+    """Performs the product :math:`(\mathrm{Diag}\vec{a}) B`.
+
+    Args:
+        a (numpy.ndarray): with shape `(n, 1)`.
+        B (numpy.ndarray): with shape `(n, m)`.
+    """
+    if len(a.shape) == 1:
+        a.shape = (len(a), 1)
+    elif a.shape[1] != 1:
+        a.shape = (len(a), 1)
+
+    A = np.dot(a, np.ones((1, B.shape[1]), dtype=B.dtype))
+    return A*B

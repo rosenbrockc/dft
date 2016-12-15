@@ -49,6 +49,71 @@ def get_cache(op, cell):
         if cell is None or cell is gcell:
             return cache[op]
 
+def psi(V, W, cell, forceR=True):
+    """Calculates the normalized wave functions using the basis coefficients.
+
+    Args:
+        V (pydft.potential.Potential): describing the potential for the
+          particles.
+        W (numpy.ndarray): wave function sample points.
+        cell (pydft.geometry.Cell): describing the unit cell and sampling
+          points.
+        forceR (bool): forces the result to be real.
+    """
+    WN = Y(W, cell)
+    mu = np.dot(WN.conjugate().T, H(V, WN, cell))
+    epsilon, D = np.linalg.eig(mu)
+    if forceR:
+        epsilon = np.real(epsilon)
+        
+    return (np.dot(WN, D), epsilon)
+        
+def Y(W, cell=None):
+    """Returns the normalized wave function `Y` (eq. 6 in Ps2).
+
+    Args:
+        W (numpy.ndarray): wave function sample points.
+        cell (pydft.geometry.Cell): describing the unit cell and sampling
+          points.
+    """
+    from scipy.linalg import sqrtm
+    Usq = sqrtm(np.linalg.inv(U(W, cell)))
+    return np.dot(W, Usq)
+        
+def gradE(V, W, cell=None):
+    """Calculates the gradient of `E` with respect to the wave functions `W`.
+
+    Args:
+        V (pydft.potential.Potential): describing the potential for the
+          particles.
+        W (numpy.ndarray): wave function sample points.
+        cell (pydft.geometry.Cell): describing the unit cell and sampling
+          points.
+    """
+    Uinv = np.linalg.inv(U(W, cell))
+    A = H(V, W, cell)
+    B1 = np.dot(W, Uinv)
+    B2 = np.dot(W.conjugate().T, H(V, W, cell))
+    B = O(np.dot(B1, B2))
+
+    return np.dot(A-B, Uinv)
+          
+def H(V, W, cell=None):
+    """Returns the Hamiltonian operator in Fourier.
+
+    Args:
+        V (pydft.potential.Potential): describing the potential for the
+          particles.
+        W (numpy.ndarray): wave function sample points.
+        cell (pydft.geometry.Cell): describing the unit cell and sampling
+          points.
+    """
+    from pydft.solvers.la import diagprod
+    IW = I(W)
+    A = L(W)
+    B = Idag(diagprod(V.Vdual(), IW))
+    return -1./2*A + B
+        
 def n(W, cell=None):
     """Calculate the density vector.
 
@@ -79,14 +144,18 @@ def E(V, W, cell=None, forceR=True):
           points.
         forceR (bool): forces the result to be real.
     """
-    n_, WUinv = n(W, cell)
+    n_, WUinv = n(W, cell)   
+    Vd = V.Vdual()
+    if len(Vd.shape) == 2:
+        Vd.shape = len(Vd)
+
     A = -1./2*np.trace(np.dot(W.conjugate().T, L(WUinv)))
     B = np.dot(V.Vdual(), n_)
 
     if forceR:
         return np.real(A + B)
     else:
-        return A + B
+        return (A + B)
         
 def U(W, cell=None):
     """Calculates operator `U` for the given wave functions.

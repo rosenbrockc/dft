@@ -1,5 +1,7 @@
 """Methods and objects defining the potential for a given cell.
 """
+import numpy as np
+
 class Potential(object):
     """Represents a potential that may be discretely sampled using
     grids defined on a :class:`pydft.geometry.Cell` object.
@@ -50,5 +52,11 @@ class Potential(object):
             Jdag = B.Jdag
             J = B.J
 
-            self._Vdual = Jdag(O(J(self.V)))       
+            self._Vdual = Jdag(O(J(self.V)))
+
         return self._Vdual
+
+def QHO(cell):
+    #Setup a harmonic oscillator potential
+    from pydft.potential import Potential
+    return Potential(cell, lambda dr: 2*np.linalg.norm(dr, axis=1)**2)
