@@ -83,6 +83,7 @@ def test_gradE(adjcube):
         # Print ratio of actual change to expected change, along with estimate
         # of the error in this quantity due to rounding
         ratio = abs(1.-(E(V, W+delta*dW, cell)-E0)/dE)
+        print(int(np.log10(ratio)), int(np.log10(delta)), ratio)
         assert abs(int(np.log10(ratio)) - int(np.log10(delta))) <= 2
 
 def test_H_herm(adjcube):

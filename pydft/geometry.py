@@ -26,7 +26,7 @@ def set_cell(cell_):
     global cell
     cell = cell_
 
-def set_geometry(R, S, X=None, Z=1, grid="MP"):
+def set_geometry(R, S, X=None, Z=1, grid="MP", f=2):
     """Sets the global geometry that is used by default in all calculations.
 
     Args:
@@ -41,11 +41,12 @@ def set_geometry(R, S, X=None, Z=1, grid="MP"):
           each nucleus in `X`.
         grid (str): one of ['MP', 'BCC']; defines the type of grid to use
             for sampling *real* space unit cell.
+        f (int): number of electrons per orbital.
     """
     from pydft.bases.fourier import reset_cache
     reset_cache()
     global cell
-    cell = Cell(R, S, X, Z, grid)
+    cell = Cell(R, S, X, Z, grid, f=f)
     return cell
 
 class Cell(object):
@@ -64,6 +65,7 @@ class Cell(object):
           each nucleus in `X`.
         grid (str): one of ['MP', 'BCC']; defines the type of grid to use
             for sampling *real* space unit cell.
+        f (int): number of electrons per orbital.
 
     Attributes:
         R (numpy.ndarray): column lattice vectors of the unit cell for the
@@ -76,8 +78,9 @@ class Cell(object):
         Z (numpy.ndarray or int): specifying the size of charge on
           each nucleus in `X`.
         vol (float): volume of the cell in real space.
+        f (int): number of electrons per orbital.
     """
-    def __init__(self, R, S, X=None, Z=1, grid="MP"):
+    def __init__(self, R, S, X=None, Z=1, grid="MP", f=2):
         self.R = np.array(R)
         self.S = np.array(S)
         self.vol = np.linalg.det(self.R)
@@ -86,6 +89,7 @@ class Cell(object):
         else:
             self.X = np.array(X)
         self.Z = np.array([Z for i in range(len(self.X))])
+        self.f = f
             
         self._M = None
         """numpy.ndarray: matrix of fractions used to define the points on which

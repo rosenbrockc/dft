@@ -96,10 +96,10 @@ def gradE(V, W, cell=None):
     B2 = np.dot(W.conjugate().T, H(V, W, cell))
     B = O(np.dot(B1, B2))
 
-    return np.dot(A-B, Uinv)
+    return cell.f*np.dot(A-B, Uinv)
           
 def H(V, W, cell=None):
-    """Returns the Hamiltonian operator in Fourier.
+    """Returns the Hamiltonian operator H(W) in Fourier.
 
     Args:
         V (pydft.potential.Potential): describing the potential for the
@@ -108,11 +108,17 @@ def H(V, W, cell=None):
         cell (pydft.geometry.Cell): describing the unit cell and sampling
           points.
     """
+    A = -1./2*L(W, cell)
+
+    #Solve poisson's equation to get the electron-electron interactions.
     from pydft.solvers.la import diagprod
-    IW = I(W)
-    A = L(W)
-    B = Idag(diagprod(V.Vdual(), IW))
-    return -1./2*A + B
+    n_, WUinv = n(W, cell)
+    Phi = -4*np.pi*Linv(O(J(n_, cell), cell), cell)
+    Veff = V.Vdual() + Jdag(O(Phi, cell), cell)
+    IW = I(W, cell)
+    B = Idag(diagprod(Veff, IW), cell)
+    
+    return A + B
         
 def n(W, cell=None):
     """Calculate the density vector.
@@ -131,7 +137,7 @@ def n(W, cell=None):
     WUinv = np.dot(W, Uinv)
     A = I(WUinv, cell)
     B = I(W, cell)
-    return (diagouter(A, B), WUinv)
+    return (cell.f*diagouter(A, B), WUinv)
         
 def E(V, W, cell=None, forceR=True):
     """Calculates the energy for the specified wave functions and potential.
@@ -149,13 +155,17 @@ def E(V, W, cell=None, forceR=True):
     if len(Vd.shape) == 2:
         Vd.shape = len(Vd)
 
-    A = -1./2*np.trace(np.dot(W.conjugate().T, L(WUinv)))
+    A = -cell.f/2.*np.trace(np.dot(W.conjugate().T, L(WUinv, cell)))
     B = np.dot(V.Vdual(), n_)
 
+    #Solve poisson's equation to get the electron-electron interactions.
+    Phi = -4*np.pi*Linv(O(J(n_, cell), cell), cell)
+    C = 1./2*np.dot(n_.conjugate().T, Jdag(O(Phi, cell), cell))
+    
     if forceR:
-        return np.real(A + B)
+        return np.real(A + B + C)
     else:
-        return (A + B)
+        return (A + B + C)
         
 def U(W, cell=None):
     """Calculates operator `U` for the given wave functions.

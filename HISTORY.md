@@ -1,5 +1,10 @@
 # Revision History
 
+## Revision 0.0.7
+
+- Added the electron-electron interaction, but not yet exchange correlation.
+- H is no longer hermitian with the new part.
+
 ## Revision 0.0.6
 
 - Complete wave function solution.
